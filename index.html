@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Оверлеи для стрима</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070d;--tx:#f1f2f8;--mut:#9094ac;
+  --glass:rgba(255,255,255,.045);--glass2:rgba(255,255,255,.08);--line:rgba(255,255,255,.1);
+  --v:#8b5cf6;--p:#ff4fa3;--c:#22d3ee;
+  --grad:linear-gradient(135deg,#8b5cf6,#ff4fa3);
+  --ac:#8b5cf6;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--tx);font:15px/1.5 Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+   radial-gradient(600px 400px at 8% 0%,rgba(139,92,246,.32),transparent 70%),
+   radial-gradient(520px 420px at 95% 12%,rgba(255,79,163,.22),transparent 70%),
+   radial-gradient(600px 500px at 50% 105%,rgba(34,211,238,.16),transparent 70%)}
+h1,h2,h3,h4{margin:0}
+header{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:12px clamp(14px,4vw,32px);background:rgba(7,7,13,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+@media(max-width:600px){#auth small{display:none}header{flex-wrap:nowrap}}
+.logo{display:flex;align-items:center;gap:10px;font-family:Unbounded,Inter,sans-serif;font-weight:800;font-size:17px;letter-spacing:-.01em}
+.logo i{width:30px;height:30px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-style:normal;font-size:15px;box-shadow:0 6px 20px rgba(139,92,246,.5)}
+main{max-width:1240px;margin:0 auto;padding:0 clamp(14px,4vw,32px) 24px}
+.hero{padding:44px 0 30px;text-align:center}
+.hero h1{font-family:Unbounded,Inter,sans-serif;font-weight:800;font-size:clamp(28px,5.4vw,56px);line-height:1.08;letter-spacing:-.025em}
+.hero h1 b{background:linear-gradient(120deg,#a78bfa,#ff4fa3 55%,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:620px;margin:16px auto 0;color:var(--mut);font-size:clamp(15px,2vw,18px)}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.chip{padding:6px 14px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:13px;font-weight:600;color:#d7d9ea}
+section{margin-bottom:44px}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sh span{width:34px;height:34px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-weight:800;font-size:15px;box-shadow:0 6px 18px rgba(139,92,246,.4);flex:none}
+.sh h2{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:clamp(17px,2.6vw,22px);letter-spacing:-.01em}
+.glass,.box,#form,#themes{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.box{margin-top:0}
+.box[hidden]{display:none}
+
+/* галерея */
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:10px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.25)}
+.card.on{border-color:var(--v);box-shadow:0 0 0 1px var(--v),0 10px 34px rgba(139,92,246,.35)}
+.card b{display:block;margin:10px 4px 2px;font-weight:700;font-size:14px}
+.th{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:12px}
+.checker{background:conic-gradient(#232330 25%,#181822 0 50%,#232330 0 75%,#181822 0) 0 0/22px 22px}
+.bg-dark{background:#05050a}
+.bg-light{background:#d9dbe3}
+.bg-green{background:#00b140}
+
+/* редактор */
+.ed{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:22px;align-items:stretch}
+@media(max-width:880px){.ed{grid-template-columns:1fr}}
+.stick{position:sticky;top:70px;z-index:20;align-self:start;padding-bottom:6px}
+@media(max-width:880px){.stick{top:62px;background:rgba(7,7,13,.9);backdrop-filter:blur(10px);padding:8px 0;margin:0 -2px}}
+#pv{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:20px;border:1px solid var(--line);cursor:grab;user-select:none;-webkit-user-select:none;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.pvbar{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.pvbar small{flex:1;min-width:150px}
+.col{display:flex;flex-direction:column;gap:14px}
+#themes h3,#form h3{font-family:Unbounded,Inter,sans-serif;font-weight:600;font-size:15px;margin-bottom:12px}
+#tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.tm{position:relative;border:2px solid transparent;border-radius:14px;padding:0;overflow:hidden;cursor:pointer;background:none;color:#fff;font:inherit;text-align:left;transition:transform .15s,border-color .15s}
+.tm:hover{transform:translateY(-2px)}
+.tm.on{border-color:#fff;box-shadow:0 0 0 2px var(--v)}
+.tm .sw2{height:46px;position:relative}
+.tm .sw2 i{position:absolute;left:10px;bottom:9px;width:20px;height:20px;border-radius:50%;box-shadow:0 0 12px currentColor}
+.tm .sw2 u{position:absolute;left:36px;bottom:14px;width:34px;height:10px;border-radius:5px;opacity:.9}
+.tm span{display:block;padding:7px 10px;font-size:12px;font-weight:700;background:rgba(0,0,0,.4)}
+.fh{margin:20px 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:10px}
+.fh::after{content:"";flex:1;height:1px;background:var(--line)}
+.fld{display:block;margin-bottom:12px}
+.fld>span{display:block;color:#b8bbd0;font-size:13px;margin-bottom:4px;font-weight:500}
+.fld.chk{display:flex;gap:10px;align-items:center;cursor:pointer}
+.fld.chk>span{margin:0}
+.fld em{font-style:normal;color:#fff;font-weight:700;margin-left:6px}
+input[type=text],input[type=number],input[type=time],select,textarea,input[readonly]{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--tx);font:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--v);box-shadow:0 0 0 3px rgba(139,92,246,.25)}
+select option{background:#14141e;color:#fff}
+textarea{resize:vertical}
+input[type=color]{width:100%;height:40px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.35);padding:3px;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--p)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--p)}
+button{padding:10px 18px;border:0;border-radius:12px;background:var(--grad);color:#fff;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap;transition:transform .15s,box-shadow .15s,filter .15s;box-shadow:0 6px 20px rgba(139,92,246,.35)}
+button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+button:active{transform:none}
+button.sec{background:var(--glass2);border:1px solid var(--line);box-shadow:none;font-weight:600}
+button.sw{width:28px;height:28px;padding:0;border-radius:50%;border:2px solid rgba(255,255,255,.4);box-shadow:none}
+.row{display:flex;gap:8px}
+.row.wrap{flex-wrap:wrap;align-items:center}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:22px}
+.box label{display:block;color:#b8bbd0;font-size:13px;margin-bottom:6px;font-weight:500}
+small,.mut{color:var(--mut)}
+ol{padding-left:22px;margin:0}
+li{margin-bottom:8px;color:#d3d5e6}
+li::marker{color:var(--p);font-weight:700}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.item div:last-child{display:flex;gap:6px}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);background:rgba(20,20,30,.92);border:1px solid var(--line);backdrop-filter:blur(10px);padding:11px 18px;border-radius:14px;opacity:0;transition:all .25s;pointer-events:none;z-index:99;font-weight:600}
+#toast.on{opacity:1;transform:translateX(-50%)}
+footer{text-align:center;color:var(--mut);padding:10px 0 36px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i>▶</i>Оверлеи</div>
+  <div id="auth"></div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Оверлеи для стрима <b>за пару кликов</b></h1>
+    <p>Выбери шаблон и тему, настрой под себя и вставь ссылкой в OBS. Ничего скачивать не нужно.</p>
+    <div class="chips"><span class="chip">Twitch</span><span class="chip">YouTube</span><span class="chip">VK Видео</span><span class="chip">10 шаблонов</span><span class="chip">8 тем</span></div>
+  </div>
+
+  <section>
+    <div class="sh"><span>1</span><h2>Выбери шаблон</h2></div>
+    <div id="gallery"></div>
+  </section>
+
+  <section>
+    <div class="sh"><span>2</span><h2>Выбери тему и настрой</h2></div>
+    <div class="ed">
+      <div>
+        <div class="stick">
+          <div id="pv" class="checker"><div id="stage"></div></div>
+          <div class="pvbar">
+            <select id="pvbg" style="width:auto">
+              <option value="checker">Фон: клетка</option>
+              <option value="bg-dark">Фон: тёмный</option>
+              <option value="bg-light">Фон: светлый</option>
+              <option value="bg-green">Фон: зелёный</option>
+            </select>
+            <button class="sec" id="play">▶ Анимация</button>
+            <small id="hint">Двигай оверлей мышью или пальцем.</small>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div id="themes"><h3>Тема оформления</h3><div id="tgrid"></div></div>
+        <div id="form"></div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="box">
+        <label for="nm">Название (для сохранения)</label>
+        <div class="row"><input type="text" id="nm" placeholder="Например: Мой стрим"><button id="sv">Сохранить</button></div>
+        <div class="row wrap" style="margin-top:12px">
+          <button class="sec" id="rst">Сбросить</button>
+          <button class="sec" id="dup">Дублировать</button>
+          <button class="sec" id="exp">Экспорт в файл</button>
+          <button class="sec" id="imp">Импорт из файла</button>
+          <input type="file" id="impf" accept=".json,application/json" hidden>
+        </div>
+      </div>
+      <div>
+        <div class="box">
+          <label for="lnk">Ссылка для OBS</label>
+          <div class="row"><input id="lnk" readonly><button id="cp">Копировать</button></div>
+          <small>В ссылке уже все твои настройки.</small>
+        </div>
+        <div class="box" id="pbox" hidden style="margin-top:14px">
+          <label for="plnk">Постоянная ссылка (обновляется сама, менять в OBS не надо)</label>
+          <div class="row"><input id="plnk" readonly><button id="cp2">Копировать</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span>3</span><h2>Вставь в OBS (YouTube, Twitch, VK Видео)</h2></div>
+    <div class="box">
+      <ol>
+        <li>В OBS в блоке «Источники» нажми «+» и выбери «Браузер».</li>
+        <li>В поле URL вставь ссылку для OBS. Ширина 1920, высота 1080.</li>
+        <li>Фон прозрачный сам, ничего включать не нужно. Поставь источник над игрой и камерой.</li>
+        <li>Для рамки камеры подгони окно камеры под рамку на предпросмотре. Для рамки чата поставь окно чата внутрь.</li>
+        <li>Заставки «Скоро начнём» и «Скоро вернусь» удобно держать в отдельных сценах.</li>
+        <li>Можно добавить несколько оверлеев сразу: каждый отдельным источником «Браузер».</li>
+        <li>Анимация появления играется при загрузке источника. Включи в его свойствах «Обновлять браузер, когда сцена становится активной».</li>
+        <li>OBS отправляет картинку на YouTube, Twitch или VK Видео одинаково, так что оверлей один для всех площадок.</li>
+        <li>Хочешь менять текст без замены ссылки: войди и сохрани оверлей, потом возьми «постоянную ссылку».</li>
+        <li>Свой логотип игры или фон: положи картинку в репозиторий рядом с сайтом и впиши её имя, например logo.png.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span>★</span><h2>Мои оверлеи</h2></div>
+    <div id="saved"><span class="mut">Пока пусто</span></div>
+  </section>
+</main>
+
+<footer>V.4</footer>
+<div id="toast"></div>
+
+<script src="config.js" onerror="void 0"></script>
+<script src="overlays.js"></script>
+<script>
+(function () {
+  var OV = window.OV;
+  var $ = function (s) { return document.querySelector(s); };
+  OV.injectCSS();
+
+  var state = { tpl: 'cam', cfg: OV.full('cam'), id: null, cloud: false, name: '' };
+  var user = null, fb = null, saved = [], thumbs = [], lastTheme = '';
+  var stage = $('#stage'), pv = $('#pv');
+  var COLORS = ['#9146ff', '#ff0033', '#0077ff', '#00d084', '#ffb300', '#ff4fa3', '#00e5ff', '#ff6a00', '#ffffff', '#7cff3a'];
+
+  function toast(t) {
+    var e = $('#toast');
+    e.textContent = t;
+    e.className = 'on';
+    clearTimeout(toast.t);
+    toast.t = setTimeout(function () { e.className = ''; }, 2500);
+  }
+
+  function refit() {
+    thumbs.forEach(function (t) { OV.fit(t.stage, t.wrap.clientWidth, t.wrap.clientHeight); });
+    OV.fit(stage, pv.clientWidth, pv.clientHeight);
+  }
+  addEventListener('resize', refit);
+
+  function themed(tid) {
+    var c = OV.full(tid);
+    return lastTheme ? OV.applyTheme(tid, c, lastTheme) : c;
+  }
+
+  /* ---------- галерея ---------- */
+  function buildGallery() {
+    var g = $('#gallery');
+    g.innerHTML = '';
+    thumbs = [];
+    OV.ORDER.forEach(function (tid) {
+      var t = OV.TEMPLATES[tid];
+      var card = document.createElement('div');
+      card.className = 'card' + (tid === state.tpl ? ' on' : '');
+      card.dataset.tid = tid;
+      var wrap = document.createElement('div');
+      wrap.className = 'th checker';
+      var st = document.createElement('div');
+      wrap.appendChild(st);
+      var b = document.createElement('b');
+      b.textContent = t.title;
+      card.appendChild(wrap);
+      card.appendChild(b);
+      card.addEventListener('click', function () { pick(tid); });
+      g.appendChild(card);
+      OV.mount(st, tid, themed(tid), { noAnim: true });
+      thumbs.push({ stage: st, wrap: wrap });
+    });
+    refit();
+  }
+
+  function markCard() {
+    Array.prototype.forEach.call(document.querySelectorAll('.card'), function (c) {
+      c.classList.toggle('on', c.dataset.tid === state.tpl);
+    });
+  }
+
+  function pick(tid) {
+    state = { tpl: tid, cfg: themed(tid), id: null, cloud: false, name: '' };
+    $('#nm').value = '';
+    markCard();
+    buildForm();
+    render();
+    pv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ---------- темы ---------- */
+  function buildThemes() {
+    var g = $('#tgrid');
+    g.innerHTML = '';
+    OV.THEMES.forEach(function (t) {
+      var b = document.createElement('button');
+      b.className = 'tm' + (state.cfg.themeId === t.id ? ' on' : '');
+      b.innerHTML = '<div class="sw2" style="background:linear-gradient(135deg,' + t.p.c1 + ',' + t.p.c2 + ')">' +
+        '<i style="background:' + t.p.accent + ';color:' + t.p.accent + '"></i><u style="background:' + t.p.accent2 + '"></u></div><span>' + OV.esc(t.name) + '</span>';
+      b.addEventListener('click', function () {
+        lastTheme = t.id;
+        state.cfg = OV.applyTheme(state.tpl, state.cfg, t.id);
+        buildForm();
+        render();
+        buildGallery();
+        toast('Тема «' + t.name + '»');
+      });
+      g.appendChild(b);
+    });
+  }
+
+  /* ---------- форма ---------- */
+  function buildForm() {
+    buildThemes();
+    var t = OV.TEMPLATES[state.tpl];
+    var f = $('#form');
+    f.innerHTML = '';
+    var h = document.createElement('h3');
+    h.textContent = t.title;
+    var p = document.createElement('p');
+    p.className = 'mut';
+    p.style.cssText = 'margin:0 0 6px;font-size:13px';
+    p.textContent = t.desc;
+    f.appendChild(h);
+    f.appendChild(p);
+
+    var pl = document.createElement('small');
+    pl.className = 'mut';
+    pl.textContent = 'Быстрый цвет акцента';
+    var pal = document.createElement('div');
+    pal.className = 'row wrap';
+    pal.style.margin = '6px 0 10px';
+    COLORS.forEach(function (col) {
+      var b = document.createElement('button');
+      b.className = 'sw';
+      b.style.background = col;
+      b.title = col;
+      b.addEventListener('click', function () { state.cfg.accent = col; buildForm(); render(); });
+      pal.appendChild(b);
+    });
+    f.appendChild(pl);
+    f.appendChild(pal);
+
+    t.fields.concat(OV.COMMON).forEach(function (fd) {
+      if (fd.type === 'h') {
+        var hh = document.createElement('h4');
+        hh.className = 'fh';
+        hh.textContent = fd.label;
+        f.appendChild(hh);
+        return;
+      }
+      if (fd.showIf && !fd.showIf(state.cfg)) return;
+      if (t.full && (fd.k === 'dx' || fd.k === 'dy')) return;
+
+      var wrap = document.createElement('label');
+      wrap.className = 'fld' + (fd.type === 'check' ? ' chk' : '');
+      var span = document.createElement('span');
+      span.textContent = fd.label;
+      var val = null;
+      var inp;
+      if (fd.type === 'select') {
+        inp = document.createElement('select');
+        fd.options.forEach(function (o) {
+          var op = document.createElement('option');
+          op.value = o[0];
+          op.textContent = o[1];
+          inp.appendChild(op);
+        });
+        inp.value = state.cfg[fd.k];
+      } else if (fd.type === 'textarea') {
+        inp = document.createElement('textarea');
+        inp.rows = 4;
+        inp.value = state.cfg[fd.k];
+      } else {
+        inp = document.createElement('input');
+        inp.type = fd.type === 'check' ? 'checkbox' : fd.type;
+        if (fd.min != null) inp.min = fd.min;
+        if (fd.max != null) inp.max = fd.max;
+        if (fd.step != null) inp.step = fd.step;
+        if (fd.type === 'check') inp.checked = !!state.cfg[fd.k];
+        else inp.value = state.cfg[fd.k];
+      }
+      if (fd.type === 'range') {
+        val = document.createElement('em');
+        val.textContent = state.cfg[fd.k];
+        span.appendChild(val);
+      }
+      inp.addEventListener('input', function () {
+        var v;
+        if (fd.type === 'check') v = inp.checked;
+        else if (fd.type === 'range' || fd.type === 'number') v = inp.value === '' ? 0 : +inp.value;
+        else v = inp.value;
+        state.cfg[fd.k] = v;
+        if (val) val.textContent = v;
+        if (fd.k === 'platform') {
+          state.cfg.accent = OV.PLATFORMS[v].color;
+          buildForm();
+        } else if (fd.k === 'game') {
+          buildForm();
+        }
+        render();
+      });
+      if (fd.type === 'check') { wrap.appendChild(inp); wrap.appendChild(span); }
+      else { wrap.appendChild(span); wrap.appendChild(inp); }
+      f.appendChild(wrap);
+    });
+  }
+
+  /* ---------- предпросмотр и ссылки ---------- */
+  function base() { return location.href.replace(/[#?].*$/, '').replace(/[^\/]*$/, ''); }
+
+  function render(play) {
+    OV.mount(stage, state.tpl, state.cfg, { noAnim: !play });
+    OV.fit(stage, pv.clientWidth, pv.clientHeight);
+    pv.style.touchAction = OV.TEMPLATES[state.tpl].full ? '' : 'none';
+    pv.style.cursor = OV.TEMPLATES[state.tpl].full ? 'default' : 'grab';
+    $('#lnk').value = base() + 'overlay.html?t=' + state.tpl + '&c=' + OV.enc(state.tpl, state.cfg);
+    var show = !!(state.cloud && state.id);
+    $('#pbox').hidden = !show;
+    if (show) $('#plnk').value = base() + 'overlay.html?id=' + state.id;
+  }
+
+  /* перетаскивание оверлея мышью или пальцем */
+  var drag = null;
+  pv.addEventListener('pointerdown', function (e) {
+    if (OV.TEMPLATES[state.tpl].full) return;
+    drag = { x: e.clientX, y: e.clientY, dx: +state.cfg.dx || 0, dy: +state.cfg.dy || 0 };
+    try { pv.setPointerCapture(e.pointerId); } catch (er) {}
+    pv.style.cursor = 'grabbing';
+  });
+  pv.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var k = 1920 / pv.clientWidth;
+    state.cfg.dx = Math.max(-960, Math.min(960, Math.round(drag.dx + (e.clientX - drag.x) * k)));
+    state.cfg.dy = Math.max(-540, Math.min(540, Math.round(drag.dy + (e.clientY - drag.y) * k)));
+    render();
+  });
+  function endDrag() {
+    if (!drag) return;
+    drag = null;
+    pv.style.cursor = 'grab';
+    buildForm();
+  }
+  pv.addEventListener('pointerup', endDrag);
+  pv.addEventListener('pointercancel', endDrag);
+
+  $('#pvbg').addEventListener('change', function () { pv.className = this.value; });
+  $('#play').addEventListener('click', function () {
+    if (!state.cfg.anim || state.cfg.anim === 'none') toast('Выбери анимацию в разделе «Положение и вид»');
+    render(true);
+  });
+  $('#rst').addEventListener('click', function () {
+    state.cfg = OV.full(state.tpl);
+    lastTheme = '';
+    buildForm();
+    render();
+    buildGallery();
+    toast('Настройки сброшены');
+  });
+  $('#dup').addEventListener('click', function () {
+    var n = ($('#nm').value || '').trim() || OV.TEMPLATES[state.tpl].title;
+    state.id = null;
+    state.cloud = false;
+    $('#nm').value = n + ' (копия)';
+    $('#sv').click();
+  });
+
+  $('#exp').addEventListener('click', function () {
+    var data = JSON.stringify({ app: 'overlays', tpl: state.tpl, cfg: state.cfg }, null, 2);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    a.download = 'overlay-' + state.tpl + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    toast('Файл сохранён');
+  });
+  $('#imp').addEventListener('click', function () { $('#impf').click(); });
+  $('#impf').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    var inp = this;
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var o = JSON.parse(r.result);
+        if (!o || !OV.TEMPLATES[o.tpl] || typeof o.cfg !== 'object') throw new Error('bad');
+        state = { tpl: o.tpl, cfg: Object.assign(OV.full(o.tpl), o.cfg), id: null, cloud: false, name: '' };
+        $('#nm').value = '';
+        markCard();
+        buildForm();
+        render();
+        toast('Настройки загружены');
+      } catch (e) { toast('Не получилось прочитать файл'); }
+      inp.value = '';
+    };
+    r.readAsText(f);
+  });
+
+  function copy(el) {
+    el.select();
+    el.setSelectionRange(0, 99999);
+    var done = function () { toast('Ссылка скопирована'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(el.value).then(done, function () { document.execCommand('copy'); done(); });
+    } else { document.execCommand('copy'); done(); }
+  }
+  $('#cp').addEventListener('click', function () { copy($('#lnk')); });
+  $('#cp2').addEventListener('click', function () { copy($('#plnk')); });
+
+  /* ---------- сохранение ---------- */
+  function getLocal() {
+    try { return JSON.parse(localStorage.getItem('ov_saved') || '[]'); } catch (e) { return []; }
+  }
+  function setLocal(a) {
+    try { localStorage.setItem('ov_saved', JSON.stringify(a)); } catch (e) {}
+  }
+
+  function loadSaved() {
+    var local = getLocal();
+    var p = (user && fb)
+      ? fb.firestore().collection('overlays').where('uid', '==', user.uid).get().then(function (s) {
+          return s.docs.map(function (d) {
+            var x = d.data();
+            return { id: d.id, cloud: true, tpl: x.tpl, name: x.name, cfg: JSON.parse(x.cfg), updated: x.updated };
+          });
+        })
+      : Promise.resolve([]);
+    return p.then(function (cl) { return cl; }, function () { return []; }).then(function (cl) {
+      saved = cl.concat(local);
+      saved.sort(function (a, b) { return b.updated - a.updated; });
+      renderSaved();
+    });
+  }
+
+  function renderSaved() {
+    var box = $('#saved');
+    box.innerHTML = '';
+    if (!saved.length) { box.innerHTML = '<span class="mut">Пока пусто</span>'; return; }
+    saved.forEach(function (it) {
+      var row = document.createElement('div');
+      row.className = 'item';
+      var l = document.createElement('div');
+      var tt = OV.TEMPLATES[it.tpl] ? OV.TEMPLATES[it.tpl].title : it.tpl;
+      l.innerHTML = '<b>' + OV.esc(it.name) + '</b> <small>' + OV.esc(tt) + (it.cloud ? ' · в облаке' : ' · только в этом браузере') + '</small>';
+      var r = document.createElement('div');
+      var o = document.createElement('button');
+      o.textContent = 'Открыть';
+      o.addEventListener('click', function () { openItem(it); });
+      var d = document.createElement('button');
+      d.className = 'sec';
+      d.textContent = 'Удалить';
+      d.addEventListener('click', function () { delItem(it); });
+      r.appendChild(o);
+      r.appendChild(d);
+      row.appendChild(l);
+      row.appendChild(r);
+      box.appendChild(row);
+    });
+  }
+
+  function openItem(it) {
+    if (!OV.TEMPLATES[it.tpl]) return;
+    state = { tpl: it.tpl, cfg: Object.assign(OV.full(it.tpl), it.cfg), id: it.id, cloud: !!it.cloud, name: it.name };
+    $('#nm').value = it.name;
+    markCard();
+    buildForm();
+    render();
+    pv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function delItem(it) {
+    if (!confirm('Удалить «' + it.name + '»?')) return;
+    var after = function () {
+      if (state.id === it.id) { state.id = null; state.cloud = false; render(); }
+      loadSaved();
+    };
+    if (it.cloud) {
+      fb.firestore().collection('overlays').doc(it.id).delete().then(after, function (e) { toast('Ошибка: ' + e.message); });
+    } else {
+      setLocal(getLocal().filter(function (x) { return x.id !== it.id; }));
+      after();
+    }
+  }
+
+  $('#sv').addEventListener('click', function () {
+    var name = ($('#nm').value || '').trim() || OV.TEMPLATES[state.tpl].title;
+    var now = Date.now();
+    if (user && fb) {
+      var col = fb.firestore().collection('overlays');
+      var ref = state.cloud && state.id ? col.doc(state.id) : col.doc();
+      ref.set({ uid: user.uid, tpl: state.tpl, name: name, cfg: JSON.stringify(state.cfg), updated: now }).then(function () {
+        state.id = ref.id; state.cloud = true; state.name = name;
+        toast('Сохранено в облаке');
+        loadSaved();
+        render();
+      }, function (e) { toast('Ошибка: ' + e.message); });
+      return;
+    }
+    var list = getLocal();
+    var id = (!state.cloud && state.id) ? state.id : 'l' + now;
+    list = list.filter(function (x) { return x.id !== id; });
+    list.push({ id: id, cloud: false, tpl: state.tpl, name: name, cfg: state.cfg, updated: now });
+    setLocal(list);
+    state.id = id; state.cloud = false; state.name = name;
+    toast(fb ? 'Сохранено в браузере. Войди, чтобы получить постоянную ссылку' : 'Сохранено в браузере');
+    loadSaved();
+  });
+
+  /* ---------- вход ---------- */
+  function renderAuth() {
+    var a = $('#auth');
+    a.innerHTML = '';
+    if (!fb) {
+      a.innerHTML = '<small class="mut">Без входа: оверлеи хранятся только в этом браузере</small>';
+      return;
+    }
+    if (!user) {
+      var b = document.createElement('button');
+      b.textContent = 'Войти через Google';
+      b.addEventListener('click', function () {
+        fb.auth().signInWithPopup(new fb.auth.GoogleAuthProvider()).catch(function (e) { toast('Ошибка входа: ' + e.message); });
+      });
+      a.appendChild(b);
+      return;
+    }
+    var s = document.createElement('small');
+    s.className = 'mut';
+    s.textContent = (user.displayName || user.email || 'Вы вошли') + ' ';
+    var o = document.createElement('button');
+    o.className = 'sec';
+    o.textContent = 'Выйти';
+    o.addEventListener('click', function () { fb.auth().signOut(); });
+    a.appendChild(s);
+    a.appendChild(o);
+  }
+
+  /* ---------- старт ---------- */
+  buildGallery();
+  buildForm();
+  render();
+  refit();
+  renderAuth();
+  loadSaved();
+
+  OV.loadFirebase().then(function (f) {
+    fb = f;
+    f.auth().onAuthStateChanged(function (u) {
+      var was = !!user;
+      user = u;
+      if (was && !u) { state.id = null; state.cloud = false; render(); }
+      renderAuth();
+      loadSaved();
+    });
+  }).catch(function () { renderAuth(); });
+})();
+</script>
+</body>
+</html>
