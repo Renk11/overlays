@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Overlay</title>
-<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}</style>
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}#stage{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden}</style>
 </head>
 <body>
 <div id="stage"></div>
@@ -15,26 +15,35 @@
   var OV = window.OV;
   OV.injectCSS();
   var st = document.getElementById('stage');
-  function fit() { OV.fit(st, innerWidth, innerHeight); }
+  function fit() { OV.fitScene(st, innerWidth, innerHeight); }
   addEventListener('resize', fit);
-  function show(t, c) {
-    if (!OV.TEMPLATES[t]) return;
-    OV.mount(st, t, c);
+  function show(layers) {
+    OV.mountScene(st, layers);
     fit();
   }
   var q = new URLSearchParams(location.search);
   if (q.get('id')) {
-    // Постоянная ссылка: настройки лежат в облаке и обновляются на лету
+    // Постоянная ссылка: сцена лежит в облаке и обновляется на лету
     OV.loadFirebase().then(function (fb) {
       fb.firestore().collection('overlays').doc(q.get('id')).onSnapshot(function (d) {
         if (!d.exists) return;
-        var x = d.data();
-        show(x.tpl, Object.assign(OV.full(x.tpl), JSON.parse(x.cfg)));
+        var x = d.data(), cfg = JSON.parse(x.cfg);
+        if (x.tpl === 'scene') {
+          show((cfg.layers || []).filter(function (L) { return OV.TEMPLATES[L.tpl]; }).map(function (L) {
+            return { tpl: L.tpl, cfg: Object.assign(OV.full(L.tpl), L.cfg), on: L.on !== false };
+          }));
+        } else if (OV.TEMPLATES[x.tpl]) {
+          show([{ tpl: x.tpl, cfg: Object.assign(OV.full(x.tpl), cfg), on: true }]);
+        }
       });
     }).catch(function () {});
+  } else if (q.get('s')) {
+    // Сцена целиком в ссылке
+    show(OV.decScene(q.get('s')));
   } else {
+    // Старые ссылки на один оверлей продолжают работать
     var t = q.get('t') || 'cam';
-    show(t, OV.dec(t, q.get('c') || ''));
+    if (OV.TEMPLATES[t]) show([{ tpl: t, cfg: OV.dec(t, q.get('c') || ''), on: true }]);
   }
 })();
 </script>

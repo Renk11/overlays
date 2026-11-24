@@ -53,18 +53,28 @@ var COMMON = [
   { k: 'font', label: 'Шрифт', type: 'select', options: FONTS },
   { k: 'fs', label: 'Размер текста, %', type: 'range', min: 70, max: 160, step: 5 },
   { k: 'shadow', label: 'Тень у текста', type: 'check' },
+  { k: 'caps', label: 'ВСЕ БУКВЫ ЗАГЛАВНЫЕ', type: 'check' },
+  { k: 'gfont', label: 'Свой шрифт Google Fonts (название, например Rubik или Pacifico)', type: 'text' },
   { k: 'accent2', label: 'Второй цвет (для градиента и пикселя)', type: 'color' },
   { k: 'theme', label: 'Стиль панелей', type: 'select', options: [['glass', 'Стекло'], ['solid', 'Сплошной цвет'], ['neon', 'Неон'], ['outline', 'Контур'], ['gradient', 'Градиент'], ['pixel', 'Пиксель']] },
   { type: 'h', label: 'Положение и вид' },
   { k: 'dx', label: 'Сдвиг по горизонтали', type: 'range', min: -960, max: 960, step: 2 },
   { k: 'dy', label: 'Сдвиг по вертикали', type: 'range', min: -540, max: 540, step: 2 },
   { k: 'opacity', label: 'Прозрачность оверлея, %', type: 'range', min: 20, max: 100, step: 5 },
-  { k: 'anim', label: 'Появление', type: 'select', options: [['none', 'Без анимации'], ['fade', 'Плавно'], ['up', 'Выезд снизу'], ['zoom', 'Увеличение']] }
+  { k: 'scale', label: 'Размер слоя, %', type: 'range', min: 40, max: 250, step: 5 },
+  { k: 'rot', label: 'Поворот, градусы', type: 'range', min: -45, max: 45, step: 1 },
+  { k: 'anim', label: 'Анимация', type: 'select', options: [['none', 'Без анимации'], ['fade', 'Плавное появление'], ['up', 'Выезд снизу'], ['down', 'Выезд сверху'], ['left', 'Выезд слева'], ['right', 'Выезд справа'], ['zoom', 'Увеличение'], ['bounce', 'Отскок'], ['float', 'Парение (постоянно)'], ['pulse', 'Мерцание (постоянно)']] },
+  { k: 'animDelay', label: 'Задержка анимации, сек', type: 'range', min: 0, max: 10, step: 0.5 },
+  { type: 'h', label: 'Эффекты панелей' },
+  { k: 'blur', label: 'Размытие фона панелей', type: 'range', min: 0, max: 30, step: 1 },
+  { k: 'pr', label: 'Скругление панелей (0 = как в шаблоне)', type: 'range', min: 0, max: 60, step: 2 },
+  { k: 'glow', label: 'Свечение панелей', type: 'range', min: 0, max: 100, step: 5 }
 ];
 var COMMON_DEF = {
   platform: 'twitch', showPlatform: true, accent: '#9146ff', font: FONTS[0][0],
   textColor: '#ffffff', fs: 100, shadow: true, theme: 'glass', accent2: '#ff4fa3', themeId: '',
-  dx: 0, dy: 0, opacity: 100, anim: 'none',
+  dx: 0, dy: 0, opacity: 100, anim: 'none', scale: 100, rot: 0, animDelay: 0,
+  blur: 8, pr: 0, glow: 0, caps: false, gfont: '',
   game: '', gameCustom: '', gameIcon: '', logo: '', showGame: true
 };
 
@@ -74,7 +84,7 @@ var CSS = '' +
 '.ov-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;color:#fff;transform-origin:0 0;text-shadow:0 2px 8px rgba(0,0,0,.45)}' +
 '.ov-stage.no-sh,.ov-stage.no-sh *{text-shadow:none}' +
 '.ov-stage *{box-sizing:border-box}' +
-'.ov-panel{backdrop-filter:blur(8px)}' +
+'.ov-panel{backdrop-filter:blur(var(--blur,8px));-webkit-backdrop-filter:blur(var(--blur,8px))}' +
 '.th-neon .ov-panel{border:2px solid var(--acc)!important;box-shadow:0 0 28px var(--acc),inset 0 0 16px rgba(255,255,255,.08)!important}' +
 '.th-outline .ov-panel{background:transparent!important;border:3px solid var(--acc)!important;backdrop-filter:none}' +
 '.th-solid .ov-panel{background:var(--acc)!important;border:0!important}' +
@@ -143,6 +153,15 @@ function badge(c) {
 }
 function corner(pos, m) {
   return (pos.indexOf('r') > -1 ? 'right:' : 'left:') + m + 'px;' + (pos.indexOf('t') > -1 ? 'top:' : 'bottom:') + m + 'px;';
+}
+var FX_OPTS = [['none', 'Без эффекта'], ['orbs', 'Светящийся шар'], ['aurora', 'Северное сияние'], ['stars', 'Звёзды'], ['grid', 'Ретро-сетка']];
+function fxHtml(c) {
+  var f = c.fx || 'none';
+  if (f === 'orbs') return '<div class="ov-orb" style="background:' + hexA(c.accent, .4) + '"></div>';
+  if (f === 'aurora') return '<div class="ov-orb" style="background:' + hexA(c.accent, .4) + '"></div><div class="ov-orb" style="background:' + hexA(c.accent2 || c.accent, .35) + ';animation-delay:-6s;animation-direction:alternate-reverse"></div>';
+  if (f === 'stars') return '<div class="ov-fx-stars"></div><div class="ov-fx-stars s2"></div>';
+  if (f === 'grid') return '<div class="ov-fx-grid"></div>';
+  return '';
 }
 function urlCss(u) {
   return 'url(' + esc(encodeURI(String(u)).replace(/[()'"]/g, escape)) + ')';
@@ -264,13 +283,14 @@ var TEMPLATES = {
       { k: 'after', label: 'Текст, когда время пришло', type: 'text' },
       { k: 'c1', label: 'Фон: цвет 1', type: 'color' },
       { k: 'c2', label: 'Фон: цвет 2', type: 'color' },
+      { k: 'fx', label: 'Эффект фона', type: 'select', options: FX_OPTS },
       { k: 'bgImg', label: 'Картинка фона: ссылка или файл рядом с сайтом', type: 'text' }
     ],
-    defaults: { title: 'Скоро начнём', sub: 'Стрим стартует через', time: '20:00', after: 'Начинаем!', c1: '#150d2e', c2: '#3a1c71', bgImg: '' },
+    defaults: { title: 'Скоро начнём', sub: 'Стрим стартует через', time: '20:00', after: 'Начинаем!', c1: '#150d2e', c2: '#3a1c71', bgImg: '', fx: 'orbs' },
     render: function (c) {
       var chip = gameChip(c, true);
       return '<div class="ov-full" style="' + bgStyle(c) + '">' +
-        '<div class="ov-orb" style="background:' + hexA(c.accent, .4) + '"></div>' +
+        fxHtml(c) +
         '<div class="ov-center"><div class="ov-big">' + esc(c.title) + '</div><div class="ov-sub">' + esc(c.sub) + '</div><div class="ov-count">--:--</div>' +
         (chip ? '<div style="margin-top:28px">' + chip + '</div>' : '') + '</div>' +
         (c.showPlatform ? '<div class="ov-corner">' + badge(c) + '</div>' : '') + '</div>';
@@ -304,14 +324,16 @@ var TEMPLATES = {
       { k: 'c1', label: 'Фон: цвет 1', type: 'color' },
       { k: 'c2', label: 'Фон: цвет 2', type: 'color' },
       { k: 'alpha', label: 'Непрозрачность фона, %', type: 'range', min: 0, max: 100, step: 5 },
+      { k: 'fx', label: 'Эффект фона', type: 'select', options: FX_OPTS },
       { k: 'bgImg', label: 'Картинка фона: ссылка или файл рядом с сайтом', type: 'text' }
     ],
-    defaults: { title: 'Скоро вернусь', sub: 'Небольшой перерыв', ticker: 'Подписывайся на канал • Telegram: @твой_ник • Спасибо, что ты с нами', speed: 40, c1: '#0e1a2b', c2: '#1b3a5c', alpha: 92, bgImg: '' },
+    defaults: { title: 'Скоро вернусь', sub: 'Небольшой перерыв', ticker: 'Подписывайся на канал • Telegram: @твой_ник • Спасибо, что ты с нами', speed: 40, c1: '#0e1a2b', c2: '#1b3a5c', alpha: 92, bgImg: '', fx: 'none' },
     render: function (c) {
       var one = '', i;
       for (i = 0; i < 4; i++) one += esc(c.ticker) + '   •   ';
       var chip = gameChip(c, true);
       return '<div class="ov-full" style="' + bgStyle(c) + '">' +
+        fxHtml(c) +
         '<div class="ov-center"><div class="ov-big">' + esc(c.title) + '</div><div class="ov-sub">' + esc(c.sub) + '</div>' +
         (chip ? '<div style="margin-top:28px">' + chip + '</div>' : '') +
         '<div class="ov-dots"><i style="background:' + esc(c.accent) + '"></i><i style="background:' + esc(c.accent) + '"></i><i style="background:' + esc(c.accent) + '"></i></div></div>' +
@@ -478,7 +500,25 @@ CSS += '' +
 '.th-solid .ov-fill{background:var(--acc2)!important;box-shadow:none!important}' +
 '.th-pixel .ov-panel{border:4px solid var(--acc)!important;box-shadow:8px 8px 0 var(--acc2)!important;border-radius:0!important;backdrop-filter:none}' +
 '.th-pixel .ov-fill,.th-pixel .ov-bar{border-radius:0!important}' +
-'.ov-stage.static .ov-anim{animation:none!important}';
+'.ov-stage.static .ov-anim{animation:none!important}' +
+'.ov-stage.has-pr .ov-panel{border-radius:var(--pr)!important}' +
+'.ov-stage.has-gl .ov-panel{box-shadow:0 0 calc(var(--gl)*.7px) var(--acc)}' +
+'.ov-a-left{animation:ovleft .8s both cubic-bezier(.2,.8,.2,1)}.ov-a-right{animation:ovright .8s both cubic-bezier(.2,.8,.2,1)}' +
+'.ov-a-down{animation:ovdown .8s both cubic-bezier(.2,.8,.2,1)}.ov-a-bounce{animation:ovbounce 1s both}' +
+'.ov-a-float{animation:ovfloat 4s ease-in-out infinite}.ov-a-pulse{animation:ovpulse 2.6s ease-in-out infinite}' +
+'@keyframes ovleft{from{opacity:0;transform:translateX(-160px)}}' +
+'@keyframes ovright{from{opacity:0;transform:translateX(160px)}}' +
+'@keyframes ovdown{from{opacity:0;transform:translateY(-80px)}}' +
+'@keyframes ovbounce{0%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.08)}70%{transform:scale(.95)}100%{transform:none}}' +
+'@keyframes ovfloat{50%{transform:translateY(-14px)}}' +
+'@keyframes ovpulse{50%{opacity:.6}}' +
+'.ov-fx-stars{position:absolute;inset:0;opacity:.75;animation:ovtw 4s ease-in-out infinite alternate;' +
+'background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(2px 2px at 120px 80px,#fff,transparent),radial-gradient(1.5px 1.5px at 200px 150px,#fff,transparent),radial-gradient(2.5px 2.5px at 300px 40px,#fff,transparent),radial-gradient(1.5px 1.5px at 60px 190px,#fff,transparent);background-size:340px 240px}' +
+'.ov-fx-stars.s2{background-size:520px 380px;opacity:.5;animation:ovdrift 80s linear infinite}' +
+'@keyframes ovtw{from{opacity:.4}to{opacity:.9}}@keyframes ovdrift{to{background-position:-520px 380px}}' +
+'.ov-fx-grid{position:absolute;left:-50%;right:-50%;bottom:-8%;height:65%;opacity:.4;transform:perspective(500px) rotateX(62deg);animation:ovgrid 3s linear infinite;' +
+'background-image:linear-gradient(var(--acc) 2px,transparent 2px),linear-gradient(90deg,var(--acc) 2px,transparent 2px);background-size:90px 90px;-webkit-mask-image:linear-gradient(transparent,#000 60%);mask-image:linear-gradient(transparent,#000 60%)}' +
+'@keyframes ovgrid{to{background-position:0 90px}}';
 
 var ORDER = ['cam', 'lower', 'game', 'alert', 'recent', 'goal', 'socials', 'chat', 'starting', 'brb'];
 
@@ -517,24 +557,58 @@ function injectCSS() {
 
 function wrap(t, c, opts) {
   var inner = t.render(c);
-  var tr = t.full ? '' : 'transform:translate(' + (+c.dx || 0) + 'px,' + (+c.dy || 0) + 'px);';
+  var tr = t.full ? '' : 'transform:translate(' + (+c.dx || 0) + 'px,' + (+c.dy || 0) + 'px) rotate(' + (+c.rot || 0) + 'deg) scale(' + ((+c.scale || 100) / 100) + ');';
   var op = (c.opacity == null ? 100 : c.opacity) / 100;
   var an = (opts && opts.noAnim) || !c.anim || c.anim === 'none' ? '' : ' ov-a-' + c.anim;
+  var dl = an && +c.animDelay > 0 ? 'animation-delay:' + (+c.animDelay) + 's;' : '';
   var box = 'position:absolute;left:0;top:0;width:1920px;height:1080px;';
-  return '<div style="' + box + tr + 'opacity:' + op + '"><div class="' + an.trim() + '" style="' + box + '">' + inner + '</div></div>';
+  return '<div style="' + box + tr + 'opacity:' + op + '"><div class="' + an.trim() + '" style="' + box + dl + '">' + inner + '</div></div>';
 }
 
 function mount(stage, tid, c, opts) {
   if (stage._clean) { stage._clean(); stage._clean = null; }
   var t = TEMPLATES[tid];
-  stage.className = 'ov-stage th-' + (c.theme || 'glass') + (c.shadow === false ? ' no-sh' : '') + (opts && opts.noAnim ? ' static' : '');
-  stage.style.fontFamily = c.font;
+  stage.className = 'ov-stage th-' + (c.theme || 'glass') + (c.shadow === false ? ' no-sh' : '') + (opts && opts.noAnim ? ' static' : '') + (+c.pr > 0 ? ' has-pr' : '') + (+c.glow > 0 ? ' has-gl' : '');
+  var gf = String(c.gfont || '').replace(/["'<>;{}]/g, '').trim();
+  if (gf) loadGFont(gf);
+  stage.style.fontFamily = gf ? '"' + gf + '",' + c.font : c.font;
+  stage.style.textTransform = c.caps ? 'uppercase' : '';
   stage.style.color = c.textColor || '#fff';
   stage.style.setProperty('--fs', (c.fs || 100) / 100);
   stage.style.setProperty('--acc', c.accent);
   stage.style.setProperty('--acc2', c.accent2 || c.accent);
+  stage.style.setProperty('--blur', (c.blur == null ? 8 : c.blur) + 'px');
+  stage.style.setProperty('--pr', (+c.pr || 0) + 'px');
+  stage.style.setProperty('--gl', +c.glow || 0);
   stage.innerHTML = wrap(t, c, opts);
+  if (!t.full && ((+c.scale || 100) !== 100 || +c.rot)) setOrigin(stage);
   if (t.init) stage._clean = t.init(stage, c);
+}
+
+// Точка, вокруг которой слой масштабируется и поворачивается: центр самого содержимого
+function setOrigin(stage) {
+  var outer = stage.firstElementChild, inner = outer && outer.firstElementChild;
+  if (!inner) return;
+  var x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9, any = false;
+  Array.prototype.forEach.call(inner.children, function (el) {
+    if (!el.offsetWidth && !el.offsetHeight) return;
+    any = true;
+    x1 = Math.min(x1, el.offsetLeft);
+    y1 = Math.min(y1, el.offsetTop);
+    x2 = Math.max(x2, el.offsetLeft + el.offsetWidth);
+    y2 = Math.max(y2, el.offsetTop + el.offsetHeight);
+  });
+  if (any) outer.style.transformOrigin = (x1 + x2) / 2 + 'px ' + (y1 + y2) / 2 + 'px';
+}
+
+function loadGFont(name) {
+  var id = 'gf-' + name.replace(/\W+/g, '_');
+  if (document.getElementById(id)) return;
+  var l = document.createElement('link');
+  l.id = id;
+  l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(name).replace(/%20/g, '+') + ':wght@400;700;900&display=swap';
+  document.head.appendChild(l);
 }
 
 function fit(stage, w, h) {
@@ -555,6 +629,67 @@ function dec(tid, s) {
     var o = JSON.parse(decodeURIComponent(escape(atob(s))));
     return Object.assign(full(tid), o);
   } catch (e) { return full(tid); }
+}
+
+/* ---------- сцена: несколько слоёв в одной ссылке ---------- */
+function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function b64d(s) {
+  s = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  return decodeURIComponent(escape(atob(s)));
+}
+
+// layers: [{tpl, cfg, on}] — рисуются по порядку, последний сверху
+function mountScene(root, layers, opts) {
+  (root._stages || []).forEach(function (s) { if (s._clean) { s._clean(); s._clean = null; } });
+  root.innerHTML = '';
+  root._stages = [];
+  layers.forEach(function (L) {
+    if (L.on === false || !TEMPLATES[L.tpl]) return;
+    var st = document.createElement('div');
+    root.appendChild(st);
+    mount(st, L.tpl, Object.assign(full(L.tpl), L.cfg), opts);
+    root._stages.push(st);
+  });
+}
+
+function fitScene(root, w, h) {
+  (root._stages || []).forEach(function (s) { fit(s, w, h); });
+}
+
+function encScene(layers) {
+  return b64e(JSON.stringify(layers.map(function (L) {
+    var d = full(L.tpl), o = {};
+    Object.keys(L.cfg).forEach(function (k) { if (L.cfg[k] !== d[k]) o[k] = L.cfg[k]; });
+    return [L.tpl, o, L.on === false ? 0 : 1];
+  })));
+}
+
+function decScene(s) {
+  try {
+    return JSON.parse(b64d(s)).filter(function (a) { return TEMPLATES[a[0]]; }).map(function (a) {
+      return { tpl: a[0], cfg: Object.assign(full(a[0]), a[1] || {}), on: a[2] !== 0 };
+    });
+  } catch (e) { return []; }
+}
+
+// Готовые сборки
+var PRESETS = [
+  { id: 'game', name: 'Игровой стрим', layers: [['cam', { pos: 'bl', camW: 480 }], ['game', { pos: 'tl' }], ['goal', { pos: 'bottom', width: 800 }], ['chat', { height: 520, pos: 'right' }], ['alert', { dx: 120 }]] },
+  { id: 'talk', name: 'Общение', layers: [['cam', { pos: 'br', camW: 640 }], ['lower', {}], ['socials', { pos: 'tl' }], ['alert', {}]] },
+  { id: 'start', name: 'Перед стримом', layers: [['starting', {}]] },
+  { id: 'brb', name: 'Перерыв', layers: [['brb', {}]] }
+];
+
+function presetLayers(id, themeId) {
+  var p = null;
+  PRESETS.forEach(function (x) { if (x.id === id) p = x; });
+  if (!p) return [];
+  return p.layers.map(function (a) {
+    var cfg = Object.assign(full(a[0]), a[1]);
+    if (themeId) cfg = applyTheme(a[0], cfg, themeId);
+    return { tpl: a[0], cfg: cfg, on: true };
+  });
 }
 
 var fbp = null;
@@ -586,6 +721,8 @@ g.OV = {
   PLATFORMS: PLATFORMS, TEMPLATES: TEMPLATES, ORDER: ORDER, COMMON: COMMON,
   THEMES: THEMES, applyTheme: applyTheme,
   full: full, mount: mount, fit: fit, enc: enc, dec: dec,
+  mountScene: mountScene, fitScene: fitScene, encScene: encScene, decScene: decScene,
+  PRESETS: PRESETS, presetLayers: presetLayers, GAMES: GAMES,
   injectCSS: injectCSS, loadFirebase: loadFirebase, esc: esc
 };
 })(window);
