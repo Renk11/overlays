@@ -86,11 +86,11 @@ var CSS = '' +
 '.ov-stage *{box-sizing:border-box}' +
 '.ov-panel{backdrop-filter:blur(var(--blur,8px));-webkit-backdrop-filter:blur(var(--blur,8px))}' +
 '.th-neon .ov-panel{border:2px solid var(--acc)!important;box-shadow:0 0 28px var(--acc),inset 0 0 16px rgba(255,255,255,.08)!important}' +
-'.th-outline .ov-panel{background:transparent!important;border:3px solid var(--acc)!important;backdrop-filter:none}' +
-'.th-solid .ov-panel{background:var(--acc)!important;border:0!important}' +
+'.th-outline .ov-panel{background:rgba(6,6,12,.5)!important;border:3px solid var(--acc)!important}' +
+'.th-solid .ov-panel{background:var(--acc)!important;border:0!important;color:var(--onacc,#fff)!important}' +
 '.ov-t1{font-size:' + F(40) + ';font-weight:800;line-height:1.1}' +
 '.ov-t2{font-size:' + F(24) + ';opacity:.85;margin-top:6px}' +
-'.ov-badge{display:inline-block;padding:8px 18px;border-radius:999px;font-size:' + F(22) + ';font-weight:700;margin-left:24px;white-space:nowrap;text-shadow:none;color:#fff}' +
+'.ov-badge{display:inline-block;padding:8px 18px;border-radius:999px;font-size:' + F(22) + ';font-weight:700;margin-left:24px;white-space:nowrap;text-shadow:none;color:var(--onacc,#fff)}' +
 '.ov-game{display:inline-flex;align-items:center;gap:14px;padding:8px 22px 8px 14px;border-radius:14px;background:rgba(0,0,0,.55);border-left:6px solid var(--acc);font-size:' + F(30) + ';font-weight:700}' +
 '.ov-game.big{font-size:' + F(48) + ';padding:12px 32px 12px 20px;border-radius:20px}' +
 '.ov-gemo{font-size:1.25em;line-height:1}' +
@@ -104,7 +104,7 @@ var CSS = '' +
 '.ov-grow{display:flex;justify-content:space-between;gap:20px;font-size:' + F(32) + ';font-weight:700;margin-bottom:12px}' +
 '.ov-bar{border-radius:22px;background:rgba(255,255,255,.18);overflow:hidden;position:relative}' +
 '.ov-fill{height:100%;border-radius:22px;transition:width .6s}' +
-'.ov-pct{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:' + F(24) + ';font-weight:800}' +
+'.ov-pct{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:' + F(24) + ';font-weight:800;color:#fff;text-shadow:0 0 5px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9)}' +
 '.ov-full{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;background-size:cover;background-position:center}' +
 '.ov-orb{position:absolute;width:900px;height:900px;border-radius:50%;filter:blur(120px);animation:ovorb 12s ease-in-out infinite alternate}' +
 '@keyframes ovorb{from{transform:translate(-500px,-250px)}to{transform:translate(500px,250px)}}' +
@@ -124,7 +124,7 @@ var CSS = '' +
 '.ov-glab{opacity:.8;font-weight:700;letter-spacing:.12em}' +
 '.ov-gname{font-weight:900;line-height:1.05}' +
 '.ov-chat{position:absolute;display:flex;flex-direction:column;overflow:hidden}' +
-'.ov-chead{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;font-size:' + F(28) + ';font-weight:800;background:var(--acc)}' +
+'.ov-chead{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;font-size:' + F(28) + ';font-weight:800;background:var(--acc);color:var(--onacc,#fff)}' +
 '.ov-soc{position:absolute;padding:22px 34px;border-radius:22px;background:rgba(10,10,16,.78);min-width:480px}' +
 '.ov-soc h4{margin:0 0 10px;font-size:' + F(30) + ';font-weight:800;color:var(--acc)}' +
 '.ov-sl{font-size:' + F(30) + ';font-weight:600;padding:5px 0}' +
@@ -145,6 +145,12 @@ function hexA(h, a) {
   var n = parseInt(h, 16) || 0;
   return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
 }
+function lum(h) {
+  h = String(h || '#000').replace('#', '');
+  if (h.length === 3) h = h.replace(/./g, '$&$&');
+  var n = parseInt(h, 16) || 0;
+  return (0.2126 * (n >> 16 & 255) + 0.7152 * (n >> 8 & 255) + 0.0722 * (n & 255)) / 255;
+}
 function pad(n) { return (n < 10 ? '0' : '') + n; }
 function badge(c) {
   if (!c.showPlatform) return '';
@@ -154,6 +160,101 @@ function badge(c) {
 function corner(pos, m) {
   return (pos.indexOf('r') > -1 ? 'right:' : 'left:') + m + 'px;' + (pos.indexOf('t') > -1 ? 'top:' : 'bottom:') + m + 'px;';
 }
+/* ---------- живые события и показатели (их заполняет live.js) ---------- */
+var BUS = { ev: [], met: {}, mlis: {}, recent: [] };
+var CUR = { RUB: '₽', USD: '$', EUR: '€', UAH: '₴', KZT: '₸', BYN: 'Br' };
+var EV_META = {
+  follow: ['❤️', 'Новый фолловер', 'фолловер'],
+  sub: ['⭐', 'Новый подписчик', 'подписка'],
+  donate: ['💰', 'Донат', 'донат'],
+  raid: ['🚀', 'Рейд', 'рейд'],
+  cheer: ['💎', 'Биты', 'биты']
+};
+function onEvent(fn) {
+  BUS.ev.push(fn);
+  return function () { BUS.ev = BUS.ev.filter(function (x) { return x !== fn; }); };
+}
+function emitEvent(e) {
+  e = Object.assign({ ts: Date.now() }, e);
+  BUS.recent.unshift(e);
+  if (BUS.recent.length > 30) BUS.recent.length = 30;
+  BUS.ev.slice().forEach(function (fn) { try { fn(e); } catch (x) {} });
+}
+function setMetric(k, v) {
+  BUS.met[k] = v;
+  (BUS.mlis[k] || []).slice().forEach(function (fn) { try { fn(v); } catch (x) {} });
+}
+function onMetric(k, fn) {
+  (BUS.mlis[k] = BUS.mlis[k] || []).push(fn);
+  if (k in BUS.met) { try { fn(BUS.met[k]); } catch (x) {} }
+  return function () { BUS.mlis[k] = (BUS.mlis[k] || []).filter(function (x) { return x !== fn; }); };
+}
+function fmtNum(v) { v = +v || 0; return String(Math.round(v * 100) / 100); }
+function evAmount(e) {
+  if (e.amount === '' || e.amount == null) return '';
+  var n = +e.amount, s = isNaN(n) ? String(e.amount) : fmtNum(n);
+  if (e.kind === 'donate') return (s + ' ' + (CUR[e.currency] || e.currency || '')).trim();
+  if (e.kind === 'raid') return s + ' зрит.';
+  if (e.kind === 'cheer') return s + ' бит';
+  if (e.kind === 'sub') return isNaN(n) || n <= 1 ? '' : s + ' мес.';
+  return '';
+}
+function evLine(e) {
+  var m = EV_META[e.kind] || EV_META.follow, a = evAmount(e);
+  return m[0] + ' ' + (e.who || '—') + ' — ' + (a || m[2]);
+}
+function recentBody(c, lines) {
+  if (!lines.length && c.liveOn) return '<div class="ov-sl" style="opacity:.6">Пока нет событий</div>';
+  return lines.map(function (l, i) {
+    return '<div class="ov-sl">' + (c.numbered ? '<span style="color:' + esc(c.accent) + ';font-weight:800">' + (i + 1) + '. </span>' : '') + esc(l) + '</div>';
+  }).join('');
+}
+// Окно события в «живом» режиме: ждёт события, показывает по очереди
+function alertLive(root, el, c) {
+  var wrap = root.querySelector('.ov-alert-wrap');
+  var ico = el.querySelector('.ov-aico'), lab = el.querySelector('.ov-glab'), who = el.querySelector('.ov-awho');
+  var amt = el.querySelector('.ov-aamt'), msg = el.querySelector('.ov-amsg');
+  var show = Math.max(2, +c.showFor || 6) * 1000;
+  var allow = { follow: c.evFollow !== false, sub: c.evSub !== false, donate: c.evDonate !== false, raid: c.evRaid !== false, cheer: c.evCheer !== false };
+  var q = [], busy = false, dead = false, t1, t2;
+  function next() {
+    if (busy || dead || !q.length) return;
+    busy = true;
+    var e = q.shift(), m = EV_META[e.kind] || EV_META.follow, a = evAmount(e);
+    ico.textContent = m[0];
+    lab.textContent = m[1].toUpperCase();
+    who.textContent = e.who || '';
+    amt.textContent = a ? ' ' + a : '';
+    msg.textContent = e.msg || '';
+    msg.style.display = e.msg ? '' : 'none';
+    wrap.style.display = 'flex';
+    el.style.animation = 'ovalert .7s both';
+    t1 = setTimeout(function () {
+      el.style.animation = 'ovalertout .5s both';
+      t2 = setTimeout(function () { wrap.style.display = 'none'; busy = false; next(); }, 500);
+    }, show);
+  }
+  var off = onEvent(function (e) {
+    if (!allow[e.kind]) return;
+    q.push(e);
+    if (q.length > 25) q.shift();
+    next();
+  });
+  return function () { dead = true; off(); clearTimeout(t1); clearTimeout(t2); };
+}
+
+var GOAL_SRC = [
+  ['manual', 'Вручную (число «Сейчас»)'],
+  ['se:follower-total', 'StreamElements: всего фолловеров'],
+  ['se:follower-session', 'StreamElements: фолловеры за стрим'],
+  ['se:subscriber-total', 'StreamElements: всего подписчиков'],
+  ['se:subscriber-session', 'StreamElements: подписчики за стрим'],
+  ['se:tip-total', 'StreamElements: донаты, всего'],
+  ['se:tip-session', 'StreamElements: донаты за стрим'],
+  ['da:sum', 'DonationAlerts: сумма донатов с выбранной даты']
+];
+function isLiveOn(c) { return !!c.liveOn; }
+
 var FX_OPTS = [['none', 'Без эффекта'], ['orbs', 'Светящийся шар'], ['aurora', 'Северное сияние'], ['stars', 'Звёзды'], ['grid', 'Ретро-сетка']];
 function fxHtml(c) {
   var f = c.fx || 'none';
@@ -253,22 +354,34 @@ var TEMPLATES = {
       { k: 'cur', label: 'Сейчас', type: 'number' },
       { k: 'max', label: 'Цель', type: 'number' },
       { k: 'unit', label: 'Единица (₽, подписчиков…)', type: 'text' },
+      { k: 'src', label: 'Откуда брать число «Сейчас» (нужны «Подключения»)', type: 'select', options: GOAL_SRC },
       { k: 'showPct', label: 'Показывать проценты', type: 'check' },
       { k: 'pos', label: 'Положение', type: 'select', options: [['top', 'Сверху'], ['bottom', 'Снизу']] },
       { k: 'width', label: 'Ширина', type: 'range', min: 600, max: 1800, step: 20 },
       { k: 'barH', label: 'Толщина полосы', type: 'range', min: 20, max: 90, step: 2 },
       { k: 'bg', label: 'Цвет фона', type: 'color' }
     ],
-    defaults: { label: 'Цель: новый микрофон', cur: 35, max: 100, unit: '₽', showPct: true, pos: 'top', width: 1000, barH: 44, bg: '#101018' },
+    defaults: { label: 'Цель: новый микрофон', cur: 35, max: 100, unit: '₽', src: 'manual', showPct: true, pos: 'top', width: 1000, barH: 44, bg: '#101018' },
     render: function (c) {
       var pct = +c.max > 0 ? Math.max(0, Math.min(100, c.cur / c.max * 100)) : 0;
       var w = +c.width, bh = +c.barH || 44;
       var chip = gameChip(c), bd = badge(c).replace('margin-left:24px', 'margin-left:0');
       return '<div class="ov-goal ov-panel" style="' + (c.pos === 'top' ? 'top' : 'bottom') + ':36px;width:' + w + 'px;left:' + ((1920 - w) / 2) + 'px;background:' + hexA(c.bg, .8) + '">' +
-        '<div class="ov-grow"><span>' + esc(c.label) + '</span><span>' + esc(c.cur) + ' / ' + esc(c.max) + ' ' + esc(c.unit) + '</span></div>' +
+        '<div class="ov-grow"><span>' + esc(c.label) + '</span><span class="ov-gnum">' + esc(c.cur) + ' / ' + esc(c.max) + ' ' + esc(c.unit) + '</span></div>' +
         '<div class="ov-bar" style="height:' + bh + 'px;border-radius:' + bh / 2 + 'px"><div class="ov-fill" style="width:' + pct + '%;border-radius:' + bh / 2 + 'px;background:' + esc(c.accent) + ';box-shadow:0 0 20px ' + hexA(c.accent, .8) + '"></div>' +
         (c.showPct === false ? '' : '<div class="ov-pct">' + Math.round(pct) + '%</div>') + '</div>' +
         ((chip || bd) ? '<div style="margin-top:12px;display:flex;gap:12px;align-items:center">' + chip + bd + '</div>' : '') + '</div>';
+    },
+    init: function (root, c) {
+      if (!c.src || c.src === 'manual') return null;
+      var num = root.querySelector('.ov-gnum'), fill = root.querySelector('.ov-fill'), pctEl = root.querySelector('.ov-pct');
+      return onMetric(c.src, function (v) {
+        v = +v || 0;
+        var mx = +c.max, pct = mx > 0 ? Math.max(0, Math.min(100, v / mx * 100)) : 0;
+        num.textContent = fmtNum(v) + ' / ' + c.max + ' ' + c.unit;
+        fill.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+      });
     }
   },
 
@@ -419,33 +532,39 @@ var TEMPLATES = {
 
 TEMPLATES.alert = {
   title: 'Событие (подписчик, донат)',
-  desc: 'Всплывающее окно о новом подписчике, донате или рейде. Показывается по кругу, чтобы ты видел, как оно выглядит.',
+  desc: 'Всплывающее окно о новом подписчике, донате или рейде. Без подключения показывается по кругу как пример. С галкой «Брать из сервисов» ждёт реальные события.',
   fields: [
-    { k: 'kind', label: 'Тип события', type: 'select', options: [['sub', '⭐ Новый подписчик'], ['donate', '💰 Донат'], ['raid', '🚀 Рейд'], ['follow', '❤️ Новый фолловер']] },
+    { k: 'kind', label: 'Тип события', type: 'select', options: [['sub', '⭐ Новый подписчик'], ['donate', '💰 Донат'], ['raid', '🚀 Рейд'], ['follow', '❤️ Новый фолловер'], ['cheer', '💎 Биты']] },
     { k: 'who', label: 'Имя зрителя', type: 'text' },
     { k: 'amount', label: 'Сумма или число (необязательно)', type: 'text' },
     { k: 'msg', label: 'Сообщение', type: 'text' },
     { k: 'pos', label: 'Положение', type: 'select', options: [['top', 'Сверху по центру'], ['center', 'По центру'], ['bottom', 'Снизу по центру']] },
     { k: 'showFor', label: 'Показывать, сек', type: 'range', min: 3, max: 15, step: 1 },
     { k: 'pause', label: 'Пауза между показами, сек', type: 'range', min: 0, max: 30, step: 1 },
-    { k: 'loop', label: 'Повторять по кругу', type: 'check' },
+    { k: 'loop', label: 'Повторять по кругу (пример)', type: 'check' },
+    { k: 'liveOn', label: 'Брать реальные события из подключённых сервисов', type: 'check' },
+    { k: 'evFollow', label: 'Показывать: фолловеры', type: 'check', showIf: isLiveOn },
+    { k: 'evSub', label: 'Показывать: подписки', type: 'check', showIf: isLiveOn },
+    { k: 'evDonate', label: 'Показывать: донаты', type: 'check', showIf: isLiveOn },
+    { k: 'evRaid', label: 'Показывать: рейды', type: 'check', showIf: isLiveOn },
+    { k: 'evCheer', label: 'Показывать: биты', type: 'check', showIf: isLiveOn },
     { k: 'bg', label: 'Цвет фона', type: 'color' }
   ],
-  defaults: { kind: 'sub', who: 'Имя зрителя', amount: '', msg: 'Спасибо за поддержку!', pos: 'top', showFor: 6, pause: 6, loop: true, bg: '#101018' },
+  defaults: { kind: 'sub', who: 'Имя зрителя', amount: '', msg: 'Спасибо за поддержку!', pos: 'top', showFor: 6, pause: 6, loop: true, liveOn: false, evFollow: true, evSub: true, evDonate: true, evRaid: true, evCheer: true, bg: '#101018' },
   render: function (c) {
-    var K = { sub: ['⭐', 'Новый подписчик'], donate: ['💰', 'Донат'], raid: ['🚀', 'Рейд'], follow: ['❤️', 'Новый фолловер'] };
-    var k = K[c.kind] || K.sub;
+    var k = EV_META[c.kind] || EV_META.sub;
     var top = c.pos === 'center' ? 400 : (c.pos === 'bottom' ? 700 : 70);
-    return '<div class="ov-alert-wrap" style="position:absolute;left:0;right:0;top:' + top + 'px;display:flex;justify-content:center">' +
+    return '<div class="ov-alert-wrap" style="position:absolute;left:0;right:0;top:' + top + 'px;display:flex;justify-content:center' + (c.liveOn ? ';display:none' : '') + '">' +
       '<div class="ov-alert ov-panel" style="background:' + hexA(c.bg, .88) + ';border:4px solid ' + esc(c.accent) + ';box-shadow:0 0 40px ' + hexA(c.accent, .5) + '">' +
       '<div class="ov-aico">' + k[0] + '</div><div>' +
       '<div class="ov-glab" style="font-size:' + F(24) + ';color:' + esc(c.accent) + '">' + esc(k[1].toUpperCase()) + '</div>' +
-      '<div class="ov-aname">' + esc(c.who) + (c.amount ? ' <span style="color:' + esc(c.accent) + '">' + esc(c.amount) + '</span>' : '') + '</div>' +
-      (c.msg ? '<div class="ov-t2" style="font-size:' + F(30) + '">' + esc(c.msg) + '</div>' : '') +
+      '<div class="ov-aname"><span class="ov-awho">' + esc(c.who) + '</span><span class="ov-aamt" style="color:' + esc(c.accent) + '">' + (c.amount ? ' ' + esc(c.amount) : '') + '</span></div>' +
+      '<div class="ov-t2 ov-amsg" style="font-size:' + F(30) + (c.msg ? '' : ';display:none') + '">' + esc(c.msg) + '</div>' +
       '</div></div></div>';
   },
   init: function (root, c) {
     var el = root.querySelector('.ov-alert');
+    if (el && c.liveOn) return alertLive(root, el, c);
     if (!el || c.loop === false) return null;
     var show = Math.max(2, +c.showFor || 6) * 1000, pause = Math.max(0, +c.pause || 0) * 1000;
     var t1, t2, dead = false;
@@ -470,6 +589,7 @@ TEMPLATES.recent = {
   fields: [
     { k: 'title', label: 'Заголовок', type: 'text' },
     { k: 'items', label: 'Строки (каждая с новой строки)', type: 'textarea' },
+    { k: 'liveOn', label: 'Брать реальные события из подключённых сервисов (строки ниже тогда не нужны)', type: 'check' },
     { k: 'max', label: 'Сколько строк показывать', type: 'range', min: 1, max: 10, step: 1 },
     { k: 'numbered', label: 'Нумеровать строки', type: 'check' },
     { k: 'width', label: 'Ширина', type: 'range', min: 300, max: 900, step: 10 },
@@ -477,14 +597,19 @@ TEMPLATES.recent = {
     { k: 'bg', label: 'Цвет фона', type: 'color' },
     { k: 'bgAlpha', label: 'Прозрачность фона, %', type: 'range', min: 0, max: 100, step: 5 }
   ],
-  defaults: { title: 'Последние события', items: '⭐ Anna — подписка\n💰 Ivan — 300 ₽\n❤️ Olga — фолловер\n🚀 Max — рейд 25', max: 5, numbered: false, width: 480, pos: 'tr', bg: '#101018', bgAlpha: 78 },
+  defaults: { title: 'Последние события', items: '⭐ Anna — подписка\n💰 Ivan — 300 ₽\n❤️ Olga — фолловер\n🚀 Max — рейд 25', max: 5, liveOn: false, numbered: false, width: 480, pos: 'tr', bg: '#101018', bgAlpha: 78 },
   render: function (c) {
-    var lines = String(c.items || '').split(/\r?\n/).filter(function (x) { return x.trim(); }).slice(0, +c.max || 5);
-    var body = lines.map(function (l, i) {
-      return '<div class="ov-sl">' + (c.numbered ? '<span style="color:' + esc(c.accent) + ';font-weight:800">' + (i + 1) + '. </span>' : '') + esc(l) + '</div>';
-    }).join('');
+    var max = +c.max || 5;
+    var lines = c.liveOn
+      ? BUS.recent.slice(0, max).map(evLine)
+      : String(c.items || '').split(/\r?\n/).filter(function (x) { return x.trim(); }).slice(0, max);
     return '<div class="ov-soc ov-panel" style="' + corner(c.pos, 40) + 'width:' + (+c.width || 480) + 'px;background:' + hexA(c.bg, c.bgAlpha / 100) + '">' +
-      (c.title ? '<h4>' + esc(c.title) + '</h4>' : '') + body + '</div>';
+      (c.title ? '<h4>' + esc(c.title) + '</h4>' : '') + '<div class="ov-rl">' + recentBody(c, lines) + '</div></div>';
+  },
+  init: function (root, c) {
+    if (!c.liveOn) return null;
+    var box = root.querySelector('.ov-rl'), max = +c.max || 5;
+    return onEvent(function () { box.innerHTML = recentBody(c, BUS.recent.slice(0, max).map(evLine)); });
   }
 };
 
@@ -494,9 +619,10 @@ CSS += '' +
 '.ov-aname{font-size:' + F(56) + ';font-weight:900;line-height:1.1}' +
 '@keyframes ovalert{from{opacity:0;transform:translateY(-60px) scale(.9)}to{opacity:1;transform:none}}' +
 '@keyframes ovalertout{to{opacity:0;transform:translateY(-40px) scale(.95)}}' +
-'.th-gradient .ov-panel{background:linear-gradient(135deg,var(--acc),var(--acc2))!important;border:0!important}' +
+'.th-gradient .ov-panel{background:linear-gradient(135deg,var(--acc),var(--acc2))!important;border:0!important;color:var(--ongrad,#fff)!important}' +
 '.th-gradient .ov-fill{background:#fff!important;box-shadow:none!important}' +
-'.th-gradient .ov-badge,.th-solid .ov-badge{background:rgba(0,0,0,.35)!important}' +
+'.th-gradient .ov-badge,.th-solid .ov-badge{background:rgba(0,0,0,.4)!important;color:#fff!important}' +
+'.th-outline .ov-chead{background:rgba(255,255,255,.12);color:var(--acc)}' +
 '.th-solid .ov-fill{background:var(--acc2)!important;box-shadow:none!important}' +
 '.th-pixel .ov-panel{border:4px solid var(--acc)!important;box-shadow:8px 8px 0 var(--acc2)!important;border-radius:0!important;backdrop-filter:none}' +
 '.th-pixel .ov-fill,.th-pixel .ov-bar{border-radius:0!important}' +
@@ -518,7 +644,8 @@ CSS += '' +
 '@keyframes ovtw{from{opacity:.4}to{opacity:.9}}@keyframes ovdrift{to{background-position:-520px 380px}}' +
 '.ov-fx-grid{position:absolute;left:-50%;right:-50%;bottom:-8%;height:65%;opacity:.4;transform:perspective(500px) rotateX(62deg);animation:ovgrid 3s linear infinite;' +
 'background-image:linear-gradient(var(--acc) 2px,transparent 2px),linear-gradient(90deg,var(--acc) 2px,transparent 2px);background-size:90px 90px;-webkit-mask-image:linear-gradient(transparent,#000 60%);mask-image:linear-gradient(transparent,#000 60%)}' +
-'@keyframes ovgrid{to{background-position:0 90px}}';
+'@keyframes ovgrid{to{background-position:0 90px}}' +
+'.th-solid .ov-glab,.th-gradient .ov-glab,.th-solid .ov-aamt,.th-gradient .ov-aamt,.th-solid .ov-soc h4,.th-gradient .ov-soc h4,.th-solid .ov-sl span,.th-gradient .ov-sl span{color:inherit!important}';
 
 var ORDER = ['cam', 'lower', 'game', 'alert', 'recent', 'goal', 'socials', 'chat', 'starting', 'brb'];
 
@@ -577,6 +704,9 @@ function mount(stage, tid, c, opts) {
   stage.style.setProperty('--fs', (c.fs || 100) / 100);
   stage.style.setProperty('--acc', c.accent);
   stage.style.setProperty('--acc2', c.accent2 || c.accent);
+  // цвет текста, читаемый на акценте (для светлых акцентов текст тёмный)
+  stage.style.setProperty('--onacc', lum(c.accent) > .58 ? '#101018' : '#ffffff');
+  stage.style.setProperty('--ongrad', (lum(c.accent) + lum(c.accent2 || c.accent)) / 2 > .58 ? '#101018' : '#ffffff');
   stage.style.setProperty('--blur', (c.blur == null ? 8 : c.blur) + 'px');
   stage.style.setProperty('--pr', (+c.pr || 0) + 'px');
   stage.style.setProperty('--gl', +c.glow || 0);
@@ -722,7 +852,7 @@ g.OV = {
   THEMES: THEMES, applyTheme: applyTheme,
   full: full, mount: mount, fit: fit, enc: enc, dec: dec,
   mountScene: mountScene, fitScene: fitScene, encScene: encScene, decScene: decScene,
-  PRESETS: PRESETS, presetLayers: presetLayers, GAMES: GAMES,
+  PRESETS: PRESETS, presetLayers: presetLayers, GAMES: GAMES, lum: lum, emitEvent: emitEvent, onEvent: onEvent, setMetric: setMetric, onMetric: onMetric,
   injectCSS: injectCSS, loadFirebase: loadFirebase, esc: esc
 };
 })(window);

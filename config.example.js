@@ -7,3 +7,7 @@ window.FIREBASE_CONFIG = {
   projectId: '',
   appId: ''
 };
+
+// Для кнопки «Войти через DonationAlerts»: ID приложения с donationalerts.com/application/clients.
+// Redirect URI в приложении = адрес сайта, например https://твой-ник.github.io/overlays/
+window.DONATIONALERTS_CLIENT_ID = '';

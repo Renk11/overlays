@@ -10,6 +10,7 @@
 <div id="stage"></div>
 <script src="config.js" onerror="void 0"></script>
 <script src="overlays.js"></script>
+<script src="live.js"></script>
 <script>
 (function () {
   var OV = window.OV;
@@ -22,12 +23,17 @@
     fit();
   }
   var q = new URLSearchParams(location.search);
+  function startLive(c) { try { if (c && (c.se || c.da)) LIVE.start(c); } catch (e) {} }
+  if (q.get('k')) {
+    try { var kk = q.get('k').replace(/-/g, '+').replace(/_/g, '/'); startLive(JSON.parse(decodeURIComponent(escape(atob(kk))))); } catch (e) {}
+  }
   if (q.get('id')) {
     // Постоянная ссылка: сцена лежит в облаке и обновляется на лету
     OV.loadFirebase().then(function (fb) {
       fb.firestore().collection('overlays').doc(q.get('id')).onSnapshot(function (d) {
         if (!d.exists) return;
         var x = d.data(), cfg = JSON.parse(x.cfg);
+        if (x.live && !window.__liveOn) { window.__liveOn = 1; try { startLive(JSON.parse(x.live)); } catch (e) {} }
         if (x.tpl === 'scene') {
           show((cfg.layers || []).filter(function (L) { return OV.TEMPLATES[L.tpl]; }).map(function (L) {
             return { tpl: L.tpl, cfg: Object.assign(OV.full(L.tpl), L.cfg), on: L.on !== false };
